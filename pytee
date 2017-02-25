@@ -1,0 +1,40 @@
+#!/usr/bin/env python
+# Tee implementation
+import sys,argparse
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        prog='PyTee',
+        description='Tee implementation'
+    )
+
+    parser.add_argument('-a','--append',action='store_true',required=False,default=False)
+    parser.add_argument('FILE', metavar='F', type=str, nargs='*',
+                        help='filenames for writing')
+    return parser.parse_args()
+    
+
+
+def touch_files(file_list,mode):
+    for fd in file_list:
+        write_to_file(fd,"",mode)
+   
+def write_to_file(filename,line,mode):
+    with open(filename,mode) as fd:
+        fd.write(line)
+
+def main():
+    args = parse_args()
+
+    mode = 'w'
+    if args.append: mode = 'a'
+    if args.FILE:
+        touch_files(args.FILE,mode)
+
+    for line in sys.stdin:
+        sys.stdout.write(line) 
+        if args.FILE:
+           for path in sys.argv[1:]:
+               write_to_file(path,line,mode)
+
+if __name__ == '__main__': main()

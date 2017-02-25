@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+# downloarder program,similar to wget
+import urllib.request
+import sys
+import os
+def main():
+    url = sys.argv[1]
+    save = url.split('/')[-1]
+    buffer_size=512
+    try:
+        with urllib.request.urlopen(url) as response, open(save,'wb') as out_file:
+            print(response.info())
+            print(">>> Writing data:")
+            has_data=True
+            retrieved = 0
+            while has_data:
+                 data = response.read(buffer_size)
+                 retrieved += len(data)
+                 message = "Retrieved "+str(retrieved)+" bytes"
+                 print("\r"+" "*len(message)+"\r",end="")
+                 print(message,end="")
+                 sys.stdout.flush()
+                 if data:
+                     out_file.write(data)
+                 else:
+                    has_data=False
+        #urllib.request.urlretrieve(url,save)
+    except Exception as e:
+        print('\n>>> Something went wrong')
+        print(str(e))
+    else:
+        print('\n>>> URL retrieved successfully')
+    
+
+if __name__ == '__main__': main()

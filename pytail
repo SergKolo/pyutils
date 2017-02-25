@@ -1,0 +1,93 @@
+#!/usr/bin/env python3
+# tail implementation
+from stat import *
+import sys,argparse,os
+import profile
+
+def parse_args():
+        """ Parses command-line arguments """
+        arg_parser = argparse.ArgumentParser(
+        description='Python implementation of Unix tail utility',
+        )
+
+        arg_parser.add_argument(
+                                '-f', '--file',
+                                help='File to be processed',
+                                type=str,
+                                default='sys.stdin',
+                                required=False
+                                )
+
+        arg_parser.add_argument(
+                                '-l', '--lines',
+                                help='Number of lines to be processed',
+                                type=int,
+                                default=10,
+                                required=False
+                                )
+        return arg_parser.parse_args()
+
+def tail_pipe(num_lines):
+    # TODO: implement circular buffer
+    # for dealing with pipes
+    #python -c "from stat import S_ISFIFO;from os import fstat; print S_ISFIFO(fstat(0).st_mode)" < /etc/passwd  
+    lines = sys.stdin.readlines()[-1*num_lines:]
+    print("".join(lines),end="")
+
+def tail_file(buffer,lines):
+
+    if buffer != 'sys.stdin':
+        f = open(buffer,'rb')
+    else:
+        f = sys.stdin.buffer
+
+    line_list = list()
+    offset = -1
+    counter = 0
+
+    # lets see how this works
+    f.seek(offset,2)
+    data = f.read(1)
+
+    while True:
+        offset = offset - 1
+        try:
+            f.seek(offset,2)
+            data = f.read(1)
+            if data == b'\n':
+                counter += 1
+                if counter > lines: break
+                line = f.readline()  #.decode().strip()
+                line_list.append(line)
+
+        except IOError as err:
+            f.seek(0)
+            line = f.readline() #.decode().strip()
+            line_list.append(line)
+            break
+
+    decoded_lines = list(map(lambda x: x.decode().strip(),line_list))
+
+    if decoded_lines[0] == "": decoded_lines.pop(0)
+    decoded_lines.reverse()
+    print("\n".join(decoded_lines),flush=True)
+    sys.stdout.flush()
+    f.close()
+
+def main():
+    args = parse_args()
+
+    # With a file specified over -f flag or with shell's <
+    # redirection, we can use tail_file() function for seeking
+    # file backwards and get lines that way.
+    # And if input is comming through pipe, well, we can't seek
+    # backwards, so we need to do something else there    
+
+    if (args.file == 'sys.stdin' and
+       (S_ISCHR(os.fstat(0).st_mode) or S_ISFIFO(os.fstat(0).st_mode))):
+            tail_pipe(args.lines)
+    else:
+        tail_file(args.file,args.lines)
+
+if __name__ == '__main__': #profile.run('main()')
+    main()
