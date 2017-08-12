@@ -24,7 +24,7 @@ def main():
 
     fp = open(sys.argv[2],'rb')
     for i in range(1,howmany):
-        print(i)
+        #print(i)
         fp.seek(0)
         read_bytewise(fp)
     fp.close()
